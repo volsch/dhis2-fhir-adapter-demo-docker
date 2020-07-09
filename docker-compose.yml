@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  db:
+    container_name: dhis2-fhir-demo-db
+    build: ./db
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_PASSWORD: dhis
+      POSTGRES_DB: dhis2
+    ports:
+      - "15432:5432"
+  dhis:
+    container_name: dhis2-fhir-demo-dhis
+    image: dhis2/core:2.32.4
+    volumes:
+      - ./dhis/dhis.conf:/DHIS2_home/dhis.conf
+    environment:
+      - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
+    ports:
+      - "18080:8080"
+    depends_on:
+      - db
+  fhir:
+    container_name: dhis2-fhir-demo-fhir
+    build: ./fhir
+    volumes:
+      - ./fhir/application.yml:/DHIS2_home/services/fhir-adapter/application.yml
+    ports:
+      - "18081:8081"
+    depends_on:
+      - db
+      - dhis
